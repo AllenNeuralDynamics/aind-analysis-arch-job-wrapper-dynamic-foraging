@@ -25,9 +25,9 @@ from utils.docDB_io import (
     credentials,
 )
 from utils.aws_io import (
-    upload_s3_fig,
-    upload_s3_pkl,
-    upload_s3_json,
+    save_fig,
+    save_pkl,
+    save_json,
     S3_RESULTS_ROOT,
     LOCAL_RESULTS_ROOT,
 )
@@ -49,7 +49,7 @@ ANALYSIS_MAPPER = {
 }
 
 
-def upload_results(job_hash, results):
+def upload_results(job_hash, results, analysis_name):
     """
     Upload results to S3
 
@@ -63,7 +63,6 @@ def upload_results(job_hash, results):
         "upload_figs_s3": dict, figures to upload to s3, {"file_name": fig object}
         "upload_pkls_s3": dict, pkl files to upload to s3, {"pkl_name": pkl object}
         "upload_record_docDB": dict, bson-compatible record to upload to docDB
-
     """
     if "skipped" in results["status"]:
         return {
@@ -75,23 +74,23 @@ def upload_results(job_hash, results):
 
     # Upload figures to s3 (and a local copy)
     for fig_name, fig in results.get("upload_figs_s3", {}).items():
-        upload_s3_fig(job_hash, fig_name, fig, if_save_local=True)
+        save_fig(job_hash, fig_name, fig, if_save_local=True)
 
     # Upload pkl files to s3 (and a local copy)
     for pkl_name, pkl in results.get("upload_pkls_s3", {}).items():
-        upload_s3_pkl(job_hash, pkl_name, pkl, if_save_local=True)
+        save_pkl(job_hash, pkl_name, pkl, if_save_local=True)
 
-    upload_status = {"s3_location": f"s3://{S3_RESULTS_ROOT}/{job_hash}"}
+    upload_status = {"s3_location": "to_be_filled"} # f"s3://{S3_RESULTS_ROOT}/{job_hash}"}
 
-    # Save docDB record to s3 (and a local copy)
+    # Save docDB record local
     upload_record_docDB = results.get("upload_record_docDB", {})
-    upload_s3_json(
+    save_json(
         job_hash=job_hash,
-        filename="docDB_record.json",
+        filename=f"docDB_{analysis_name}.json",
         dict=upload_record_docDB,
         if_save_local=True,
     )
-    msg = f"Upload to s3 done! {'-' * 20}"
+    msg = f"Save results done! {'-' * 20}"
     logger.info(msg)
     print(msg, flush=True)
 
@@ -136,10 +135,10 @@ def _run_one_job(job_file, parallel_inside_job):
         logger.info(msg)
         print(msg, flush=True)
         logger.info(f"Job hash: {job_hash}")
-        
+
         # Update status to "running" in job manager DB
         # update_job_manager(job_hash=job_hash, update_dict={"status": "running"})
-        
+
         analysis_results = capture_logs(logger)(analysis_fun)(job_dict, parallel_inside_job)
         results, log = analysis_results["result"], analysis_results["logs"]
         logger.info(
@@ -148,10 +147,11 @@ def _run_one_job(job_file, parallel_inside_job):
         print(f"Job {job_hash} completed with status: {results['status']}", flush=True)  # Print to console of CO pipeline run
 
         # -- Upload results --
-        upload_response = upload_results(job_hash, results)
-        # upload_status, upload_log = upload_response["result"], upload_response["logs"]
-        # log += upload_log  # Also add log during upload
-        
+        upload_response = capture_logs(logger)(upload_results)(job_hash, results, package_name)
+
+        upload_status, upload_log = upload_response["result"], upload_response["logs"]
+        log += upload_log  # Also add log during upload
+
         # -- Update job manager DB with log and status --
         # update_job_manager(
         #     job_hash,
@@ -165,6 +165,19 @@ def _run_one_job(job_file, parallel_inside_job):
         #     },
         #     doc_db_client=doc_db_client,
         # )
+        save_json(
+            job_hash=job_hash,
+            filename="docDB_job_manager.json",
+            dict={
+                "status": results["status"],
+                "docDB_id": "to_be_filled",
+                "collection_name": "to_be_filled",
+                "s3_location": upload_status.get("s3_location", None),
+                "log": log,
+            },
+            if_save_local=True,
+        )
+
     except Exception as e:  # Unhandled exception
         logger.error(f"Job {job_hash} failed with unhandled exception: {e}")
         logger.error(traceback.format_exc())  # Logs the full traceback
@@ -183,21 +196,32 @@ def _run_one_job(job_file, parallel_inside_job):
         #     )
         # except:
         #     logger.error("'Failed' message failed to upload...")
+        save_json(
+            job_hash=job_hash,
+            filename="docDB_job_manager.json",
+            dict={
+                "status": "failed due to unhandled exception (see log)",
+                "docDB_id": None,
+                "collection_name": None,
+                "log": log,
+            },
+            if_save_local=True,
+        )
 
 # @retry_on_ssh_timeout()
 # def batch_run_with_single_ssh_and_retry(batch_i, job_files_this_batch):
 #     with DocumentDbSSHClient(credentials=credentials) as client:  # This is only ssh connection to retry
 #         # Send a message to the CO_machine_log collection
 #         update_CO_machine_status(
-#             machine_name, batch_i, 
-#             status_type="batch", 
+#             machine_name, batch_i,
+#             status_type="batch",
 #             status="start",
 #             doc_db_client=client
 #         )
 
 #         for j, job_file in enumerate(job_files_this_batch):
 #             job_hash = os.path.basename(job_file).replace(".json", "")
-        
+
 #             update_CO_machine_status(
 #                 machine_name,
 #                 batch_i,
@@ -206,7 +230,7 @@ def _run_one_job(job_file, parallel_inside_job):
 #                 status="running",
 #                 doc_db_client=client,
 #             )
-            
+
 #             _run_one_job(job_file, parallel_inside_job=True, doc_db_client=client)
 
 #             # Update progress
@@ -240,8 +264,9 @@ def run(parallel_on_jobs=False, debug_mode=True, docDB_ssh_batch_size=50):
 
     # For each job json, run the corresponding job using multiprocessing
     if parallel_on_jobs:
-        logger.info(f"\n\nRunning {len(job_files)} jobs, parallel on jobs...")
-        pool = mp.Pool(mp.cpu_count())
+        cpu_count = int(os.getenv("CO_CPUS"))
+        pool = mp.Pool(cpu_count)
+        logger.info(f"\n\nRunning {len(job_files)} jobs, parallel on jobs with {cpu_count} workers...")
         results = [pool.apply_async(_run_one_job, args=(job_file, False)) for job_file in job_files]
         _ = [r.get() for r in results]
         pool.close()
@@ -279,7 +304,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # retrive the arguments
-    parallel_on_jobs = bool(int(args.parallel_on_jobs or "1"))  # Default 0
+    parallel_on_jobs = bool(int(args.parallel_on_jobs or "0"))  # Default 0
     debug_mode = bool(int(args.debug_mode or "1"))  # Default 1
 
     run(parallel_on_jobs=parallel_on_jobs, debug_mode=debug_mode)
