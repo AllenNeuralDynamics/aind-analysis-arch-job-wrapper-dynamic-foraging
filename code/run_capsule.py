@@ -68,7 +68,7 @@ def upload_results(job_hash, results, analysis_name):
         return {
             "docDB_id": None,
             "docDB_upload_status": None,
-            "collection_name": None,
+            "collection_name": package_name,
             "s3_location": None,
         }
 
@@ -171,7 +171,7 @@ def _run_one_job(job_file, parallel_inside_job):
             dict={
                 "status": results["status"],
                 "docDB_id": "to_be_filled",
-                "collection_name": "to_be_filled",
+                "collection_name": package_name,
                 "s3_location": upload_status.get("s3_location", None),
                 "log": log,
             },
@@ -202,7 +202,7 @@ def _run_one_job(job_file, parallel_inside_job):
             dict={
                 "status": "failed due to unhandled exception (see log)",
                 "docDB_id": None,
-                "collection_name": None,
+                "collection_name": package_name,
                 "log": log,
             },
             if_save_local=True,
