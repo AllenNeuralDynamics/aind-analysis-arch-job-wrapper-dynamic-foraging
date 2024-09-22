@@ -68,7 +68,7 @@ def upload_results(job_hash, results, analysis_name):
         return {
             "docDB_id": None,
             "docDB_upload_status": None,
-            "collection_name": package_name,
+            "collection_name": None,
             "s3_location": None,
         }
 
