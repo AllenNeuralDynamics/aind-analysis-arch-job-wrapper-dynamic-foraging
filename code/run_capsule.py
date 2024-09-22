@@ -172,7 +172,7 @@ def _run_one_job(job_file, parallel_inside_job):
                 "status": results["status"],
                 "docDB_id": "to_be_filled",
                 "collection_name": package_name,
-                "s3_location": upload_status.get("s3_location", None),
+                "s3_location": "to_be_filled",
                 "log": log,
             },
             if_save_local=True,
