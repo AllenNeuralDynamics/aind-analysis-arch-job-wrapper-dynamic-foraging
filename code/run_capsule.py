@@ -39,7 +39,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[logging.FileHandler(f'{SCRIPT_DIR}/../results/run.log'),
+                    handlers=[# logging.FileHandler(f'{SCRIPT_DIR}/../results/run.log'),  # Remove logging file to avoid pipeline conflict
                               logging.StreamHandler()])
 logger = logging.getLogger()  # Use root logger to capture all logs (including logs from imported modules)
 
