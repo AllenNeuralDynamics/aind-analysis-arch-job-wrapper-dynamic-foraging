@@ -3,10 +3,33 @@
 import numpy as np
 from pynwb import NWBHDF5IO
 import os
+import json
+import boto3
+from tqdm import tqdm
 
-from utils.aws_io import fs
+S3_NWB_ROOT = "aind-behavior-data/"
+LOCAL_NWB_TMP = "/tmp"
 
-S3_NWB_ROOT = "aind-behavior-data/foraging_nwb_bonsai"
+def download_all_nwb_files_from_s3(job_files):
+    """Download all NWB files from S3 to local tmp folder.
+
+    Parameters
+    ----------
+    job_files : list
+        List of NWB file names.
+    """
+    s3 = boto3.client('s3')
+
+    for job_file in tqdm(job_files, desc="Downloading nwbs...", total=len(job_files)):
+        with open(job_file) as f:
+            job_dict = json.load(f)
+            file = job_dict["nwb_name"]
+            
+            s3.download_file(
+                "aind-behavior-data", 
+                f"foraging_nwb_bonsai/{file}",
+                f"{LOCAL_NWB_TMP}/{file}")
+
 
 def get_nwb_from_s3(session_id):
     """Get NWB file from session_id.
@@ -45,6 +68,20 @@ def get_nwb_from_attached_dataasset(session_id):
         _description_
     """
     io = NWBHDF5IO(f"/root/capsule/data/foraging_nwb_bonsai/{session_id}.nwb", mode="r")
+    nwb = io.read()
+    return nwb
+
+def get_nwb_from_local_tmp(session_id):
+    """Get NWB file from session_id.
+
+    Overwrite this function to get NWB file from other places.
+
+    Parameters
+    ----------
+    session_id : _type_
+        _description_
+    """
+    io = NWBHDF5IO(f"{LOCAL_NWB_TMP}/{session_id}.nwb", mode="r")
     nwb = io.read()
     return nwb
 

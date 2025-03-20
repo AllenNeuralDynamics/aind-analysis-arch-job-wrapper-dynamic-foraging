@@ -7,7 +7,7 @@ from datetime import datetime
 import numpy as np
 import multiprocessing as mp
 
-from utils.nwb_io import get_nwb_from_s3, get_history_from_nwb
+from utils.nwb_io import get_history_from_nwb, get_nwb_from_local_tmp
 from aind_dynamic_foraging_models.generative_model import ForagerCollection
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def wrapper_main(job_dict, parallel_inside_job=False) -> dict:
 
     # -- Load data --
     session_id = job_dict["nwb_name"].replace(".nwb", "")
-    nwb = get_nwb_from_s3(session_id=session_id)
+    nwb = get_nwb_from_local_tmp(session_id=session_id)
     (
         baiting,
         choice_history,
