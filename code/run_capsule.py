@@ -103,14 +103,18 @@ def _run_one_job(job_file, parallel_inside_job):
 
         # -- Saving results locally --
         save_results(job_hash, results, package_name)
+        
+        # Originally the job_manager database, but now we just add more fields to this in case
+        # the session is skipped in my v2 implementation.
         save_json(
             job_hash=job_hash,
             filename="docDB_job_manager.json",
             dict={
                 "status": results["status"],
-                "docDB_id": "to_be_filled",
                 "collection_name": package_name,
-                "s3_location": "to_be_filled",
+                "nwb_name": job_dict["nwb_name"],
+                "job_hash": job_hash,
+                "analysis_spec": job_dict["analysis_spec"],
             },
         )
 
