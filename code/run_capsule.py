@@ -101,9 +101,8 @@ def _run_one_job(job_file, parallel_inside_job):
         )
         print(f"Job {job_hash} completed with status: {results['status']}", flush=True)  # Print to console of CO pipeline run
 
-        # -- Upload results --
+        # -- Saving results locally --
         save_results(job_hash, results, package_name)
-
         save_json(
             job_hash=job_hash,
             filename="docDB_job_manager.json",
@@ -113,7 +112,6 @@ def _run_one_job(job_file, parallel_inside_job):
                 "collection_name": package_name,
                 "s3_location": "to_be_filled",
             },
-            if_save_local=True,
         )
 
     except Exception as e:  # Unhandled exception
@@ -129,7 +127,6 @@ def _run_one_job(job_file, parallel_inside_job):
                 "docDB_id": None,
                 "collection_name": package_name,
             },
-            if_save_local=True,
         )
 
 

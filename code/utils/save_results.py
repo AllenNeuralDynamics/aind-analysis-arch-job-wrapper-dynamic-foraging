@@ -24,8 +24,7 @@ def save_pkl(job_hash, filename, obj):
         logger.info(f"Saved {filename} locally")
         
 def save_json(job_hash, filename, dict):
-    if if_save_local:
-        os.makedirs(f"{LOCAL_RESULTS_ROOT}/{job_hash}", exist_ok=True)
-        with open(f"{LOCAL_RESULTS_ROOT}/{job_hash}/{filename}", "w") as f:
-            json.dump(dict, f, indent=4)
-            logger.info(f"Saved {filename} locally")
+    os.makedirs(f"{LOCAL_RESULTS_ROOT}/{job_hash}", exist_ok=True)
+    with open(f"{LOCAL_RESULTS_ROOT}/{job_hash}/{filename}", "w") as f:
+        json.dump(dict, f, indent=4)
+        logger.info(f"Saved {filename} locally")
