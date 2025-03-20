@@ -38,7 +38,7 @@ ANALYSIS_MAPPER = {
 }
 
 
-def upload_results(job_hash, results, analysis_name):
+def save_results(job_hash, results, analysis_name):
     """
     Upload results to S3
 
@@ -54,22 +54,15 @@ def upload_results(job_hash, results, analysis_name):
         "upload_record_docDB": dict, bson-compatible record to upload to docDB
     """
     if "skipped" in results["status"]:
-        return {
-            "docDB_id": None,
-            "docDB_upload_status": None,
-            "collection_name": None,
-            "s3_location": None,
-        }
+        return
 
     # Upload figures to s3 (and a local copy)
     for fig_name, fig in results.get("upload_figs_s3", {}).items():
-        save_fig(job_hash, fig_name, fig, if_save_local=True)
+        save_fig(job_hash, fig_name, fig)
 
     # Upload pkl files to s3 (and a local copy)
     for pkl_name, pkl in results.get("upload_pkls_s3", {}).items():
-        save_pkl(job_hash, pkl_name, pkl, if_save_local=True)
-
-    upload_status = {"s3_location": "to_be_filled"}
+        save_pkl(job_hash, pkl_name, pkl)
 
     # Save docDB record local
     upload_record_docDB = results.get("upload_record_docDB", {})
@@ -77,13 +70,12 @@ def upload_results(job_hash, results, analysis_name):
         job_hash=job_hash,
         filename=f"docDB_{analysis_name}.json",
         dict=upload_record_docDB,
-        if_save_local=True,
     )
     msg = f"Save results done! {'-' * 20}"
     logger.info(msg)
     print(msg, flush=True)
 
-    return upload_status
+    return
 
 def _run_one_job(job_file, parallel_inside_job):
     with open(job_file) as f:
@@ -103,19 +95,14 @@ def _run_one_job(job_file, parallel_inside_job):
         print(msg, flush=True)
         logger.info(f"Job hash: {job_hash}")
 
-        # Update status to "running" in job manager DB
-        # update_job_manager(job_hash=job_hash, update_dict={"status": "running"})
-
-        analysis_results = analysis_fun(job_dict, parallel_inside_job)
-        results = analysis_results["result"]
+        results = analysis_fun(job_dict, parallel_inside_job)
         logger.info(
             f"Job {job_hash} completed with status: {results['status']}"
         )
         print(f"Job {job_hash} completed with status: {results['status']}", flush=True)  # Print to console of CO pipeline run
 
         # -- Upload results --
-        upload_response = upload_results(job_hash, results, package_name)
-        upload_status = upload_response["result"]
+        save_results(job_hash, results, package_name)
 
         save_json(
             job_hash=job_hash,
@@ -141,7 +128,6 @@ def _run_one_job(job_file, parallel_inside_job):
                 "status": "failed due to unhandled exception (see log)",
                 "docDB_id": None,
                 "collection_name": package_name,
-                "log": log,
             },
             if_save_local=True,
         )
