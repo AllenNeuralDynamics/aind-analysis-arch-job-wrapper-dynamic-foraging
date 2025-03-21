@@ -28,7 +28,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[logging.FileHandler(f'{SCRIPT_DIR}/../results/job_wrapper.log'),
+                    handlers=[# logging.FileHandler(f'{SCRIPT_DIR}/../results/run.log'),  # Remove logging file to avoid pipeline conflict
                               logging.StreamHandler()])
 logger = logging.getLogger()  # Use root logger to capture all logs (including logs from imported modules)
 
@@ -177,14 +177,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     # add the corresponding parameters
-    parser.add_argument('--parallel_on_jobs', dest='parallel_on_jobs')
     parser.add_argument('--debug_mode', dest='debug_mode')
     
     # return the data in the object and save in args
     args = parser.parse_args()
 
     # retrive the arguments
-    parallel_on_jobs = bool(int(args.parallel_on_jobs or "0"))  # Default 0
-    debug_mode = bool(int(args.debug_mode or "1"))  # Default 1
+    parallel_on_jobs = 0 # bool(int(args.parallel_on_jobs or "0"))  # Default 0
+    debug_mode = bool(int(args.debug_mode or "1"))  # Default 1 if called the python script directly
 
     run(parallel_on_jobs=parallel_on_jobs, debug_mode=debug_mode)
