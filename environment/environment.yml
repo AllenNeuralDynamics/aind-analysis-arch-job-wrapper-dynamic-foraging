@@ -1,29 +1,5 @@
 environment_version: 1
 credentials:
-- type: general
-  id: UEQcqHQLHdarepvs
-  description: DOC_DB_PASSWORD
-  value: DOC_DB_PASSWORD
-- type: general
-  id: dT1v50FLEG6iOlZy
-  description: DOC_DB_SSH_PASSWORD
-  value: DOC_DB_SSH_PASSWORD
-- type: general
-  id: rbEnz6qcQqu7NUFi
-  description: DOC_DB_HOST
-  value: DOC_DB_HOST
-- type: general
-  id: B6SSrH1JgYzUCgLB
-  description: DOC_DB_USERNAME
-  value: DOC_DB_USERNAME
-- type: general
-  id: IpQgrvuKAKA385zC
-  description: DOC_DB_SSH_HOST
-  value: DOC_DB_SSH_HOST
-- type: general
-  id: jQ4tMAHxKYJvd7J2
-  description: DOC_DB_SSH_USERNAME
-  value: DOC_DB_SSH_USERNAME
 - type: aws
   id: 0d5EBZeeeR0B1H8A
   description: AWS Assumable Role - aind-codeocean-user
