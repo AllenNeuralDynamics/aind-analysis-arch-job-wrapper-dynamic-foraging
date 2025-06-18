@@ -98,14 +98,7 @@ def wrapper_main(job_dict, parallel_inside_job=False) -> dict:
     fig_fitting, _ = forager.plot_fitted_session(if_plot_latent=True)
     upload_figs_s3["fitted_session.png"] = fig_fitting
  
-    # 2. Fit results object
-    # Have to flatten pydantic models in forager for pickle to work
-    forager.ParamModel = forager.ParamModel.model_json_schema()
-    forager.ParamFitBoundModel = forager.ParamFitBoundModel.schema_json()
-    forager.params = forager.params.model_dump()
-    upload_pkls_s3["forager.pkl"] = forager
-
-    # 3. Database record --
+    # 2. Database record --
     analysis_results = forager.get_fitting_result_dict()
 
     analysis_libs_to_track_ver = {
@@ -120,6 +113,14 @@ def wrapper_main(job_dict, parallel_inside_job=False) -> dict:
         "analysis_libs_to_track_ver": analysis_libs_to_track_ver,
         "analysis_results": analysis_results,
     }
+     
+    # 3. Fit results object --
+    # Have to flatten pydantic models in forager for pickle to work
+    forager.ParamModel = forager.ParamModel.model_json_schema()
+    forager.ParamFitBoundModel = forager.ParamFitBoundModel.schema_json()
+    forager.params = forager.params.model_dump()
+    upload_pkls_s3["forager.pkl"] = forager
+
 
     return {
         "status": "success",
