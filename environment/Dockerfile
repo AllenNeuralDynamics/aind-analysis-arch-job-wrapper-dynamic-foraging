@@ -8,7 +8,7 @@ ARG GIT_ASKPASS
 ARG GIT_ACCESS_TOKEN
 COPY git-askpass /
 
-RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir --upgrade \
     pynwb \
     s3fs \
     aind_data_access_api[docDB] \
