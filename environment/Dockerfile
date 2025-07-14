@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir --upgrade \
     pynwb \
     s3fs \
     aind_data_access_api[docDB] \
-    aind-dynamic-foraging-models
+    aind-dynamic-foraging-models==0.12.0
 
 ADD "https://github.com/coder/code-server/releases/download/v4.21.1/code-server-4.21.1-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
 
