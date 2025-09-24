@@ -146,12 +146,12 @@ def run(parallel_on_jobs=False, debug_mode=True, docDB_ssh_batch_size=50):
     job_files = glob.glob(f"{SCRIPT_DIR}/../data/jobs/**/*.json", recursive=True)
 
     if debug_mode:
-        job_files = job_files[:1]
+        job_files = job_files[1:2]
         
     logger.info(f"The machine name is: {machine_name}")
 
     # Download all needed nwb files from s3
-    download_all_nwb_files_from_s3(job_files)
+    # download_all_nwb_files_from_s3(job_files)
 
     # For each job json, run the corresponding job using multiprocessing
     if parallel_on_jobs:

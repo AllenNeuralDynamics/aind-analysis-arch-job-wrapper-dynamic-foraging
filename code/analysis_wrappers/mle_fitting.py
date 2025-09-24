@@ -9,8 +9,12 @@ import multiprocessing as mp
 
 from utils.nwb_io import get_history_from_nwb, get_nwb_from_local_tmp
 from aind_dynamic_foraging_models.generative_model import ForagerCollection
+import aind_dynamic_foraging_data_utils.nwb_utils as nwb_utils
 
 logger = logging.getLogger(__name__)
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+LOCAL_NWB_ROOT = f"{SCRIPT_DIR}/../../data/extracted_Bowen_nwbs_20250922/extracted_Bowen_nwbs"
 
 def wrapper_main(job_dict, parallel_inside_job=False) -> dict:
     """Main entrance of this analysis
@@ -52,7 +56,8 @@ def wrapper_main(job_dict, parallel_inside_job=False) -> dict:
 
     # -- Load data --
     session_id = job_dict["nwb_name"].replace(".nwb", "")
-    nwb = get_nwb_from_local_tmp(session_id=session_id)
+    # nwb = get_nwb_from_local_tmp(session_id=session_id)
+    nwb = nwb_utils.load_nwb_from_filename(LOCAL_NWB_ROOT + "/" + session_id + ".nwb")
     (
         baiting,
         choice_history,
