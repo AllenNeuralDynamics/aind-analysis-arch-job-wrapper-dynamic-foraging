@@ -14,7 +14,7 @@ import aind_dynamic_foraging_data_utils.nwb_utils as nwb_utils
 logger = logging.getLogger(__name__)
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-LOCAL_NWB_ROOT = f"{SCRIPT_DIR}/../../data/extracted_Bowen_nwbs_20250922/extracted_Bowen_nwbs"
+LOCAL_NWB_ROOT = f"{SCRIPT_DIR}/../../data/adhoc_Xinxin_nwbs_20251207"
 
 def wrapper_main(job_dict, parallel_inside_job=False) -> dict:
     """Main entrance of this analysis
